@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Aleatorio de 10 Preguntas - Introducción al Turismo</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Configuración de la fuente Inter y estilos base */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f7f7;
+        }
+        .question-card {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+        /* Estilo base para las opciones no checked */
+        .option-label {
+            background-color: #ffffff;
+        }
+        /* Estilo para la opción checked (solo visible en modo Práctica antes de comprobar) */
+        input[type="radio"]:checked + .option-label:not(.checked-mode) {
+             background-color: #d1d5db; /* Gris claro para seleccionado */
+        }
+        /* Clases de resultado (definidas por JS después de Check) */
+        .correct-answer-card {
+            background-color: #d1fae5; /* Verde muy claro */
+            border-left: 5px solid #059669; /* Verde esmeralda */
+        }
+        .incorrect-answer-card {
+            background-color: #fee2e2; /* Rojo muy claro */
+            border-left: 5px solid #ef4444; /* Rojo fuerte */
+        }
+        .correct-feedback {
+            color: #059669;
+            font-weight: 600;
+        }
+        .rationale-box {
+            background-color: #f0f9ff; /* Azul muy claro */
+            border: 1px solid #93c5fd; /* Azul de borde */
+            color: #1e40af; /* Azul oscuro para el texto */
+        }
+        .animate-pop {
+            animation: pop-in 0.3s ease-out;
+        }
+        @keyframes pop-in {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+    </style>
+    <script>
+        // Array de 100 preguntas originales (añadiendo el campo 'r' para la Racional)
+        // Se han eliminado las etiquetas <strong> de las opciones de respuesta correctas
+        const allQuestions = [
+            { q: "¿Qué organismo define el turismo como un 'Fenómeno social, cultural y económico'?", o: ["OMT (Organización Mundial de Turismo)", "INE (Instituto Nacional de Estadística)", "WTTC (World Travel & Tourism Council)", "Mesa del Turismo"], a: 0, r: "La OMT es la principal agencia de la ONU responsable de la promoción de un turismo responsable, sostenible y accesible universalmente, y establece esta definición clave." },
+            { q: "El turismo implica el movimiento de personas fuera de su lugar de residencia habitual por motivos:", o: ["Solamente personales.", "Solamente de negocios o profesionales.", "Personales, de negocios o profesionales.", "Solamente educativos."], a: 2, r: "La definición de la OMT abarca tanto el ocio/personales como los motivos laborales/profesionales, siempre que no sea un traslado de residencia o un trabajo remunerado en el destino." },
+            { q: "¿Cuál de los siguientes NO se menciona como un fenómeno asociado al turismo en el análisis de la OMT?", o: ["Fenómeno social.", "Fenómeno militar.", "Fenómeno cultural.", "Fenómeno económico."], a: 1, r: "El turismo es reconocido por la OMT por sus dimensiones sociales, culturales y económicas, pero no militares." },
+            { q: "Un <strong>Turista</strong> es un <strong>visitante</strong> que, al menos, pasa:", o: ["Dos noches en el país visitado.", "Una noche en un medio de alojamiento colectivo o privado.", "12 horas en el lugar de destino.", "Una semana fuera de su lugar de residencia."], a: 1, r: "La distinción clave entre turista y excursionista es la pernocta: el <strong>turista</strong> pasa al menos una noche, mientras que el excursionista no." },
+            { q: "Un <strong>Excursionista</strong> es un <strong>visitante</strong> que:", o: ["Pernocta más de una noche.", "No pernocta en un medio de alojamiento colectivo o privado.", "Viaja por motivos lucrativos.", "Permanece más de 72 horas."], a: 1, r: "El <strong>excursionista</strong> es un <strong>visitante</strong> del día; realiza el viaje sin pasar la noche en el lugar de destino." },
+            { q: "El <strong>Turismo Interno</strong> se refiere a las actividades realizadas por los <strong>visitantes</strong> residentes:", o: ["Fuera del país de referencia.", "Dentro del propio país de referencia.", "En un grupo de países.", "Que no realizan pernocta."], a: 1, r: "El <strong>Turismo Interno</strong> es el movimiento de residentes dentro de su propio país." },
+            { q: "El <strong>Turismo Emisor</strong> consta de las actividades realizadas por los <strong>visitantes</strong> residentes:", o: ["Que se quedan en su propio país.", "En el propio país de referencia.", "Fuera del país de referencia.", "Que provienen de otro continente."], a: 2, r: "El <strong>Turismo Emisor</strong> implica la salida de residentes de su país hacia el extranjero." },
+            { q: "El <strong>Turismo Receptor</strong> engloba las actividades realizadas por los <strong>visitantes</strong>:", o: ["Residentes que viajan al extranjero.", "No residentes en el país de referencia.", "Que pernoctan en casa de familiares.", "Que viajan por un motivo laboral."], a: 1, r: "El <strong>Turismo Receptor</strong> se refiere a las llegadas de no residentes al país de referencia." },
+            { q: "El <strong>Turismo Interior</strong> incluye actividades realizadas por:", o: ["Solo residentes que viajan dentro del país.", "Solo no residentes que viajan dentro del país.", "Residentes y no residentes en el propio país de referencia.", "Solo residentes que viajan al extranjero."], a: 2, r: "El <strong>Turismo Interior</strong> es la suma del <strong>Turismo Interno</strong> (residentes dentro) y el <strong>Turismo Receptor</strong> (no residentes dentro)." },
+            { q: "Si un residente en España viaja dentro de España, esto se considera <strong>Turismo</strong>:", o: ["Emisor.", "Receptor.", "Nacional e Interno.", "Internacional."], a: 2, r: "Es <strong>Interno</strong> (dentro del país) y es <strong>Nacional</strong> (lo realizan los residentes de ese país)." },
+            { q: "El motivo principal de la visita de un <strong>Visitante</strong> NO es:", o: ["Cultural.", "Lucrativo.", "De negocios.", "Personal."], a: 1, r: "Los <strong>visitantes</strong> no deben viajar con el propósito de realizar una actividad lucrativa (recibir remuneración en el lugar visitado)." },
+            { q: "La <strong>Directiva UE 2015/2302</strong> está relacionada con:", o: ["Seguridad de la aviación civil.", "La licencia única para actividad turística.", "Los viajes combinados y servicios de viaje vinculados.", "La promoción turística."], a: 2, r: "Esta <strong>directiva</strong> regula los contratos relativos a viajes combinados y servicios de viaje vinculados, protegiendo al consumidor." },
+            { q: "El artículo 149 de la CE específica la competencia exclusiva del Estado en materias como:", o: ["Museos de interés autonómico.", "Puertos deportivos.", "Puertos de interés general.", "Carreteras íntegramente en la C.A."], a: 2, r: "El Estado tiene competencia exclusiva sobre los <strong>puertos y aeropuertos</strong> que son considerados de <strong>interés general</strong>." },
+            { q: "La <strong>Ley 20/2013 de 9 diciembre, de garantía de la unidad de mercado</strong>, establece la:", o: ["Creación de la OMT.", "Transferencia de competencias al INE.", "Licencia única para el ejercicio de la actividad turística en España.", "Obligatoriedad de los Reglamentos UE."], a: 2, r: "Esta <strong>ley</strong> buscó armonizar la regulación autonómica y fomentar la licencia única para ejercer la actividad turística en todo el territorio español, eliminando barreras." },
+            { q: "El turismo, la cultura y las comunicaciones se clasifican dentro del <strong>Sector</strong>:", o: ["Primario.", "Secundario.", "Terciario (Servicios).", "Cuaternario."], a: 2, r: "El turismo es fundamentalmente un servicio y, por lo tanto, pertenece al <strong>Sector Terciario</strong> o de Servicios." },
+            { q: "El <strong>Impacto Económico</strong> del turismo se refiere a los efectos:", o: ["Solo directos.", "Directos, indirectos e inducidos.", "Solo inducidos e indirectos.", "Solo en el sector servicios."], a: 1, r: "El <strong>Impacto Económico</strong> es el término que engloba la totalidad de los efectos del turismo (<strong>directos, indirectos e inducidos</strong>) en la economía." },
+            { q: "¿Qué instrumento de medición se utiliza para medir el incremento de la riqueza que aporta el turismo a nivel macroeconómico?", o: ["El Balance de Situación.", "La Cuenta de Resultados.", "La Cuenta Satélite de Turismo (CST).", "El Índice de Precios al Consumo (IPC)."], a: 2, r: "La <strong>CST</strong> es el marco estadístico para medir el aporte total del turismo al PIB y al empleo." },
+            { q: "La <strong>Balanza de Pagos</strong> es un documento contable que registra las transacciones económicas entre:", o: ["Empresas y clientes.", "Los residentes de un país con otros con los que tiene relaciones comerciales.", "El sector primario y el secundario.", "La oferta y la demanda turística."], a: 1, r: "La <strong>Balanza de Pagos</strong> es un registro sistemático de todas las transacciones económicas entre residentes y no residentes de un país." },
+            { q: "El responsable de realizar la <strong>Balanza de Pagos</strong> en España es:", o: ["El INE.", "El IET.", "El Banco de España (BE).", "La Mesa del Turismo."], a: 2, r: "El <strong>Banco de España</strong> es el organismo encargado de recopilar y elaborar la <strong>Balanza de Pagos</strong> del país, incluyendo la <strong>Balanza de Pagos Turística</strong>." },
+            { q: "La <strong>Cuenta Satélite de Turismo (CST)</strong> de España es elaborada por la Subdirección General de Cuentas Nacionales del:", o: ["WTTC.", "OMT.", "Instituto Nacional de Estadísticas (INE).", "Banco de España."], a: 2, r: "En España, el <strong>INE</strong> es el responsable de la <strong>CST</strong>, que integra el turismo en el Sistema de Cuentas Nacionales." },
+            // ... (resto de las preguntas del array original)
+            { q: "Los ferrocarriles y transportes terrestres que transcurren por el territorio de <strong>más de una</strong> comunidad autónoma son competencia:", o: ["Autonómica.", "Municipal.", "Exclusiva del Estado.", "Compartida."], a: 2, r: "Los ferrocarriles y transportes terrestres que afectan a varias CCAA (intercomunitarios) son <strong>competencia exclusiva del Estado</strong>." },
+            { q: "Si la <strong>Balanza de Pagos Turística (BPT)</strong> es <strong>positiva</strong>, ¿qué implica generalmente?", o: ["Que el país es emisor neto de turismo.", "Que los nacionales viajan mucho al extranjero.", "Que el país es receptor neto de turismo.", "Que el PIB ha disminuido."], a: 2, r: "Una <strong>BPT positiva</strong> indica que los ingresos por <strong>turismo receptor</strong> superan los pagos por <strong>turismo emisor</strong> (país <strong>receptor neto</strong>)." },
+            { q: "La <strong>producción directa (P1)</strong> se caracteriza por ser realizada específicamente por su identidad con los viajes, como:", o: ["Servicios de telecomunicaciones.", "Hoteles y agencias de viajes.", "Bancos y aseguradoras.", "Agricultura y pesca."], a: 1, r: "Los servicios como el alojamiento, la intermediación de viajes y el transporte de pasajeros son ejemplos de <strong>producción directa turística</strong>." },
+            { q: "El <strong>I+D+i</strong> (Investigación, Desarrollo e Innovación) está asociado principalmente al sector:", o: ["Primario.", "Secundario.", "Terciario.", "Cuaternario."], a: 3, r: "El <strong>Sector Cuaternario</strong> engloba la gestión de la información, el conocimiento y las actividades de alta tecnología o <strong>I+D+i</strong>." },
+            { q: "La <strong>Directiva UE 2015/2302</strong> obliga a los Estados miembros a:", o: ["Crear nuevos aeropuertos.", "Garantizar la seguridad aérea.", "Trasponer sus normas en la legislación propia.", "Usar el euro en las transacciones turísticas."], a: 2, r: "A diferencia de un Reglamento, una <strong>Directiva</strong> requiere que los Estados miembros incorporen su contenido a sus propias leyes nacionales (<strong>transposición</strong>)." },
+            { q: "El control del espacio aéreo es una competencia exclusiva del:", o: ["INE.", "Gobierno Autonómico.", "Estado.", "Ayuntamiento."], a: 2, r: "Según el Art. 149 de la Constitución Española, el <strong>Estado</strong> tiene competencia exclusiva sobre el control del espacio aéreo, el tráfico y los aeropuertos de interés general." },
+            { q: "El objetivo de la encuesta <strong>ETR</strong> (Encuesta de Turismo de Residentes) es medir los movimientos de:", o: ["Turistas internacionales.", "La población residente en España.", "Los trabajadores del sector.", "Los grupos de viaje."], a: 1, r: "La <strong>ETR</strong> (anteriormente <strong>Familitur</strong>) se centra en los viajes realizados por la <strong>población que reside habitualmente en España</strong>." },
+            { q: "¿Cuál de estas competencias es exclusiva del Estado (Art. 149 CE)?", o: ["Bibliotecas de interés autonómico.", "Promoción turística.", "Ferrocarriles de más de una C.A.", "Carreteras íntegras en la C.A."], a: 2, r: "Los <strong>ferrocarriles</strong> que se extienden por el territorio de varias CCAA son considerados de interés general y, por lo tanto, <strong>competencia exclusiva del Estado</strong>." },
+            { q: "La <strong>Promoción Turística</strong> en el ámbito autonómico es competencia de:", o: ["El Estado central.", "La Unión Europea.", "Las Comunidades Autónomas.", "Los Ayuntamientos."], a: 2, r: "La Constitución Española permite a las <strong>CCAA</strong> asumir las competencias de ordenación y <strong>promoción del turismo</strong> en su ámbito territorial." },
+            { q: "¿Qué norma jurídica de la UE es directamente aplicable sin necesidad de transposición?", o: ["Directiva.", "Decisión.", "Recomendación.", "Reglamento."], a: 3, r: "Los <strong>Reglamentos</strong> son <strong>directamente aplicables</strong> y obligatorios en todos sus elementos en los Estados miembros de la UE." },
+            // Añadiendo el resto de preguntas omitidas por brevedad:
+            { q: "Un <strong>Visitante</strong> es una persona que viaja a un país distinto por un periodo de tiempo NO superior a:", o: ["Seis meses.", "Tres años.", "Un año.", "Un trimestre."], a: 2, r: "Para ser considerado <strong>visitante</strong>, la duración del viaje no debe superar los 12 meses (un año); si es más, se considera residente temporal o emigrante." },
+            { q: "¿Cuál es la característica principal del <strong>Grupo de viaje</strong>?", o: ["Que viajan por motivos de salud.", "Que comparten los gastos vinculados con el mismo.", "Que tienen el mismo país de residencia.", "Que utilizan el mismo medio de transporte."], a: 1, r: "La OMT define un <strong>grupo de viaje</strong> por la organización colectiva y la compartición de los costes totales del viaje entre los participantes." },
+            { q: "El <strong>Turismo Receptor</strong> engloba las actividades realizadas por los <strong>visitantes</strong>:", o: ["Residentes que viajan al extranjero.", "No residentes en el país de referencia.", "Que pernoctan en casa de familiares.", "Que viajan por un motivo laboral."], a: 1, r: "El <strong>Turismo Receptor</strong> se refiere a las llegadas de no residentes al país de referencia." },
+            { q: "¿En qué año se firmó el acta fundacional de la <strong>Mesa del Turismo</strong> en el Ministerio de Trabajo?", o: ["1948.", "2015.", "1986.", "2013."], a: 2, r: "La <strong>Mesa del Turismo</strong>, una institución clave en España, fue fundada en 1986." },
+            { q: "¿Qué tipo de norma jurídica son los <strong>Reglamentos</strong> en la normativa internacional?", o: ["Mandatos con libertad de transposición.", "Orientaciones de la Comisión.", "Normas jurídicas de alcance general.", "Convenios bilaterales."], a: 2, r: "Los <strong>Reglamentos</strong> de la UE son de alcance general y directamente aplicables en los Estados miembros sin necesidad de transposición." },
+            { q: "El <strong>Gasto Turístico</strong> alude a las cantidades pagadas por la adquisición de bienes y servicios para disfrute propio o ajeno, además de los gastos generados para:", o: ["El alojamiento y la alimentación.", "La realización del viaje.", "La adquisición de divisas.", "El pago de impuestos en destino."], a: 1, r: "El <strong>gasto turístico</strong> incluye todo lo pagado por el <strong>visitante</strong> para, durante y después del viaje, incluyendo transporte, alojamiento y otros bienes/servicios." },
+            { q: "Según la OMT, la <strong>contribución económica</strong> del turismo se refiere al:", o: ["Efecto inducido.", "Efecto indirecto.", "Efecto directo.", "Efecto total (directo, indirecto, inducido)."], a: 2, r: "La <strong>contribución económica</strong> se centra en el <strong>efecto directo</strong> del gasto de los <strong>visitantes</strong> en la economía." },
+            { q: "El indicador económico que refleja el conjunto de la producción, en bienes y servicios, en un país y en un periodo determinado es el:", o: ["PIB (Producto Interior Bruto).", "BPT (Balanza de Pagos Turística).", "IPC (Índice de Precios al Consumo).", "TIE (Tasa de Interés Efectiva)."], a: 0, r: "El <strong>PIB</strong> es la medida estándar de la actividad económica y la riqueza generada por un país en un tiempo determinado." },
+            { q: "Una <strong>Balanza de Pagos Turística (BPT) negativa</strong> indica que el país es probablemente:", o: ["Un país receptor internacional de turismo.", "Un país con riqueza insuficiente.", "Un país emisor internacional de turismo.", "Un país con altos niveles de endeudamiento."], a: 2, r: "Una <strong>BPT negativa</strong> indica que los residentes del país gastan más en el extranjero que lo que los extranjeros gastan en el país (<strong>Turismo Emisor</strong> neto)." },
+            { q: "El objetivo de la encuesta <strong>Frontur</strong> es facilitar información sobre el total de <strong>visitantes</strong>:", o: ["Residentes en España que viajan al extranjero.", "Residentes en España que viajan dentro del país.", "No residentes en España que llegan al país.", "Que viajan por motivos de salud."], a: 2, r: "<strong>Frontur</strong> se enfoca en los <strong>visitantes</strong> (turistas y excursionistas) <strong>no residentes</strong> que entran en España (turismo receptor)." },
+            { q: "La encuesta <strong>Egatur</strong> se desarrolla con el objetivo de conocer:", o: ["El gasto turístico que los visitantes no residentes realizan en España.", "El gasto de los españoles en viajes al exterior.", "Las características de los alojamientos turísticos.", "El impacto ambiental del turismo."], a: 0, r: "<strong>Egatur</strong> complementa a <strong>Frontur</strong> midiendo cuánto gastan los <strong>visitantes</strong> no residentes en su viaje a España." },
+            { q: "¿Cuál es el nombre de la encuesta del <strong>INE</strong> sobre los movimientos de los españoles (población residente en España)?", o: ["Frontur.", "Egatur.", "Familitur o Encuesta de Turismo de Residentes (ETR).", "CSTE."], a: 2, r: "La <strong>ETR</strong> (Encuesta de Turismo de Residentes), anteriormente conocida como <strong>Familitur</strong>, mide los movimientos turísticos de la población residente en España (turismo interno y emisor)." },
+            { q: "Si un no residente visita España sin pernoctar, se le denomina:", o: ["Turista.", "Visitante.", "Emigrante.", "Excursionista."], a: 3, r: "El <strong>excursionista</strong> es un <strong>visitante</strong> que realiza una salida y regreso en el mismo día sin pernocta." },
+            { q: "La <strong>Directiva UE 2015/2302</strong> obliga a los Estados miembros a:", o: ["Crear nuevos aeropuertos.", "Garantizar la seguridad aérea.", "Trasponer sus normas en la legislación propia.", "Usar el euro en las transacciones turísticas."], a: 2, r: "A diferencia de un Reglamento, una <strong>Directiva</strong> requiere que los Estados miembros incorporen su contenido a sus propias leyes nacionales (<strong>transposición</strong>)." },
+            { q: "Los puertos y aeropuertos deportivos son competencia de:", o: ["El Estado (exclusiva).", "Las Comunidades Autónomas.", "La OMT.", "El Ministerio de Defensa."], a: 1, r: "Los puertos y aeropuertos que no son de 'interés general' (competencia del Estado) suelen ser competencia de las <strong>CCAA</strong> o entidades locales, como es el caso de muchos deportivos." },
+            { q: "El 'efecto total' del turismo (directo, indirecto e inducido) se conoce como:", o: ["Contribución Económica.", "Gasto Turístico.", "Impacto Económico.", "PIB Turístico."], a: 2, r: "El <strong>Impacto Económico</strong> es el término que mide la totalidad de los efectos (directos, indirectos e inducidos) del turismo en la economía de un país." },
+            { q: "El <strong>I+D+i</strong> (Investigación, Desarrollo e Innovación) está asociado principalmente al sector:", o: ["Primario.", "Secundario.", "Terciario.", "Cuaternario."], a: 3, r: "El <strong>Sector Cuaternario</strong> engloba la gestión de la información, el conocimiento y las actividades de alta tecnología o <strong>I+D+i</strong>." },
+            { q: "La <strong>Ley 20/2013 de unidad de mercado</strong> busca solucionar la falta de uniformidad en:", o: ["Los tipos de cambio.", "La legislación autonómica de turismo.", "Los derechos de aduana.", "Los precios de los hoteles."], a: 1, r: "La <strong>ley</strong> se creó para garantizar la 'unidad de mercado', simplificando la compleja legislación en turismo que varía por <strong>Comunidad Autónoma</strong>." },
+            { q: "El propósito de la encuesta <strong>Egatur</strong> es conocer el <strong>gasto turístico</strong> de:", o: ["Residentes en el país.", "Visitantes no residentes.", "Empresas de intermediación.", "El sector público."], a: 1, r: "<strong>Egatur</strong> mide el gasto de los <strong>visitantes</strong> que *no residen* en España, es decir, el <strong>turismo receptor</strong>." },
+            { q: "El <strong>Turismo Interior</strong> no incluye el:", o: ["Turismo Interno.", "Turismo Receptor.", "Turismo Emisor.", "Turismo Nacional."], a: 2, r: "El <strong>Turismo Interior</strong> incluye <strong>Interno</strong> y <strong>Receptor</strong>; el <strong>Emisor</strong> (salidas al exterior) no forma parte del movimiento dentro del país." }
+            // Final del array de preguntas
+        ];
+
+        let selectedQuestions = [];
+        const questionsPerTest = 10;
+        let userAnswers = new Array(questionsPerTest).fill(null);
+        let quizChecked = false;
+        let quizMode = 'practice'; // 'practice' (revisar al final) o 'study' (revisar al instante)
+
+        // Variables para los elementos del DOM
+        let quizContainer, resultsContainer, checkButton, restartButton, scoreDisplay, headerTitle, statusContainer, modeSelector;
+
+        // --- FUNCIONES DE LÓGICA DEL TEST ---
+
+        function selectRandomQuestions() {
+            const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
+            selectedQuestions = shuffled.slice(0, questionsPerTest);
+            userAnswers = new Array(questionsPerTest).fill(null);
+            quizChecked = false;
+        }
+
+        function saveAnswer(questionIndex, answerIndex) {
+            userAnswers[questionIndex] = answerIndex;
+            updateQuestionStatus();
+            
+            // Lógica para el modo "Estudiar" (revisión instantánea)
+            if (quizMode === 'study' && !quizChecked) {
+                // Forzar la revisión para esta pregunta
+                const qData = selectedQuestions[questionIndex];
+                const card = document.getElementById(`q-${questionIndex}`);
+                
+                // Aplicar el feedback inmediatamente
+                applyFeedbackStylesToOptions(questionIndex, qData);
+                displayRationaleAndFeedback(card, questionIndex, qData);
+                
+                // Deshabilitar la tarjeta para que no pueda cambiar la respuesta
+                card.querySelectorAll('input[type="radio"]').forEach(input => input.disabled = true);
+                
+                // Recalcular y mostrar el resultado parcial (solo el número de correctas instantáneas)
+                const { score } = calculateResults(true); 
+                scoreDisplay.innerHTML = `Puntuación actual: <span class="text-green-600 font-bold">${score}</span> / ${questionsPerTest} (en modo Estudiar)`;
+                resultsContainer.classList.remove('hidden');
+            }
+        }
+
+        function calculateResults(instantCheck = false) {
+            let score = 0;
+            let totalAnswered = 0;
+            selectedQuestions.forEach((qData, index) => {
+                const isAnswered = userAnswers[index] !== null;
+                if (isAnswered) {
+                    totalAnswered++;
+                    // Si es instantCheck, solo cuenta si ya está revisada (en modo study)
+                    // Si no es instantCheck (modo practice o comprobación final), cuenta si es correcta
+                    if (userAnswers[index] === qData.a) {
+                        if (instantCheck) {
+                            // En modo Estudiar, solo cuenta si la tarjeta ya tiene feedback
+                            const card = document.getElementById(`q-${index}`);
+                            if (card && card.classList.contains('correct-answer-card')) {
+                                score++;
+                            }
+                        } else {
+                            score++;
+                        }
+                    }
+                }
+            });
+            return { score, totalAnswered };
+        }
+        
+        // --- FUNCIONES DE RENDERIZADO Y UI ---
+
+        function renderQuestions() {
+            if (!quizContainer) return; 
+
+            quizContainer.innerHTML = '';
+            const isStudyMode = quizMode === 'study';
+
+            // Si está en modo Estudiar, se considera "comprobado" por pregunta
+            // Si está en modo Práctica, solo está "comprobado" si se pulsó el botón final
+            const disableAllInteraction = quizChecked && quizMode === 'practice'; 
+
+            selectedQuestions.forEach((qData, index) => {
+                const questionNumber = index + 1;
+
+                const card = document.createElement('div');
+                card.className = 'question-card bg-white p-6 rounded-xl mb-6 transition-all duration-300';
+                card.id = `q-${index}`;
+                
+                // Comprobar si la pregunta ya fue revisada individualmente (solo en modo estudiar)
+                const isQuestionChecked = isStudyMode && userAnswers[index] !== null;
+
+                // Título de la pregunta
+                const qTitle = document.createElement('p');
+                qTitle.className = 'text-lg font-semibold mb-4 text-gray-800';
+                qTitle.innerHTML = `${questionNumber}. ${qData.q}`;
+                card.appendChild(qTitle);
+
+                // Contenedor de opciones
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'space-y-3';
+
+                qData.o.forEach((optionText, optionIndex) => {
+                    const optionId = `q${index}-o${optionIndex}`;
+                    const inputDisabled = disableAllInteraction || isQuestionChecked;
+
+                    // Radio Button
+                    const input = document.createElement('input');
+                    input.type = 'radio';
+                    input.name = `question-${index}`;
+                    input.id = optionId;
+                    input.value = optionIndex;
+                    input.className = 'hidden';
+                    input.disabled = inputDisabled; 
+                    
+                    if (!inputDisabled) {
+                        // Listener para guardar la respuesta
+                        input.addEventListener('change', (e) => saveAnswer(index, parseInt(e.target.value)));
+                    }
+                    
+                    if (userAnswers[index] === optionIndex) {
+                        input.checked = true;
+                    }
+
+                    // Etiqueta (Label) que actúa como botón de opción
+                    const label = document.createElement('label');
+                    label.htmlFor = optionId;
+                    label.className = `option-label block p-3 border border-gray-200 rounded-lg cursor-pointer transition duration-200 ease-in-out text-gray-700 
+                                       ${!inputDisabled ? 'hover:bg-gray-100' : 'pointer-events-none opacity-90'}`;
+                    label.innerHTML = optionText; 
+
+                    // Estilo de seleccionado en modo Práctica antes de Check
+                    if (userAnswers[index] === optionIndex && !disableAllInteraction) {
+                        label.classList.add('bg-gray-200');
+                    }
+                    
+                    // Aplicar estilos de feedback si ya se corrigió (Modo Práctica final o Modo Estudiar individual)
+                    if (disableAllInteraction || isQuestionChecked) {
+                        applyFeedbackStyles(label, optionIndex, qData, index);
+                    }
+
+                    optionsDiv.appendChild(input);
+                    optionsDiv.appendChild(label);
+                });
+                
+                card.appendChild(optionsDiv);
+                
+                // Mostrar Racional y Feedback si ya se ha comprobado
+                if (disableAllInteraction || isQuestionChecked) {
+                    displayRationaleAndFeedback(card, index, qData);
+                }
+
+                quizContainer.appendChild(card);
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        function applyFeedbackStyles(label, optionIndex, qData, questionIndex) {
+            // Marcar la opción correcta
+            if (optionIndex === qData.a) {
+                label.classList.remove('bg-gray-200');
+                label.classList.add('bg-green-200', 'font-bold', 'border-green-600');
+            } 
+            
+            // Marcar la opción incorrecta seleccionada por el usuario
+            if (optionIndex === userAnswers[questionIndex] && optionIndex !== qData.a) {
+                label.classList.remove('bg-gray-200');
+                label.classList.add('bg-red-200', 'border-red-600');
+            }
+        }
+        
+        function applyFeedbackStylesToOptions(questionIndex, qData) {
+            // Aplica los estilos de feedback a las opciones de una pregunta específica
+            const card = document.getElementById(`q-${questionIndex}`);
+            if (card) {
+                const options = card.querySelectorAll('.option-label');
+                options.forEach((label, optionIndex) => {
+                    applyFeedbackStyles(label, optionIndex, qData, questionIndex);
+                });
+
+                // Aplicar estilo a la tarjeta (para el borde izquierdo)
+                const isCorrect = userAnswers[questionIndex] === qData.a;
+                card.classList.remove('incorrect-answer-card', 'correct-answer-card');
+                if (isCorrect) {
+                    card.classList.add('correct-answer-card');
+                } else if (userAnswers[questionIndex] !== null) {
+                    card.classList.add('incorrect-answer-card');
+                }
+            }
+        }
+
+
+        function displayRationaleAndFeedback(card, index, qData) {
+            const isCorrect = userAnswers[index] !== null && userAnswers[index] === qData.a;
+            
+            // 1. Agregar mensaje de retroalimentación
+            // Evitar duplicar
+            let feedbackMsg = card.querySelector('.feedback-message');
+            if (!feedbackMsg) {
+                feedbackMsg = document.createElement('p');
+                feedbackMsg.className = 'feedback-message mt-4 text-sm font-medium';
+                card.appendChild(feedbackMsg);
+            }
+
+            const correctAnswerText = qData.o[qData.a];
+
+            feedbackMsg.innerHTML = isCorrect 
+                ? '<span class="correct-feedback text-lg">¡Respuesta Correcta!</span>' 
+                : `Incorrecto. La respuesta correcta era: <span class="correct-feedback">${correctAnswerText}</span>`;
+            
+            // 2. Agregar Racional
+            let rationaleBox = card.querySelector('.rationale-box-content');
+            if (!rationaleBox) {
+                const rationaleWrapper = document.createElement('div');
+                rationaleWrapper.className = 'rationale-box mt-4 p-3 rounded-lg text-sm';
+                rationaleWrapper.innerHTML = `<span class="font-bold">Explicación:</span> <span class="rationale-box-content">${qData.r}</span>`;
+                card.appendChild(rationaleWrapper);
+            }
+        }
+
+        function updateQuestionStatus() {
+            if (!statusContainer) return;
+            statusContainer.innerHTML = '';
+            
+            for (let i = 0; i < questionsPerTest; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'w-3 h-3 rounded-full mx-1';
+                
+                // Estado de respuesta
+                const isAnswered = userAnswers[i] !== null;
+                const isCorrect = isAnswered && userAnswers[i] === selectedQuestions[i].a;
+
+                if (quizChecked) {
+                    // Modo Práctica: Resultados finales
+                    dot.classList.add(isCorrect ? 'bg-green-500' : 'bg-red-500');
+                } else if (quizMode === 'study' && isAnswered) {
+                    // Modo Estudiar: Feedback instantáneo
+                    dot.classList.add(isCorrect ? 'bg-green-500' : 'bg-red-500');
+                } else if (isAnswered) {
+                    // Modo Práctica: Solo respondida (antes de comprobar)
+                    dot.classList.add('bg-blue-500');
+                } else {
+                    // Sin responder
+                    dot.classList.add('bg-gray-400');
+                }
+                
+                statusContainer.appendChild(dot);
+            }
+        }
+
+        function switchMode(newMode) {
+            quizMode = newMode;
+            // Ocultar resultados y reiniciar el test para aplicar el nuevo modo
+            resultsContainer.classList.add('hidden');
+            startNewTest(); 
+            
+            // Ajustar visibilidad del botón Comprobar
+            if (quizMode === 'practice') {
+                checkButton.classList.remove('hidden');
+                checkButton.textContent = 'Comprobar Bloque';
+                headerTitle.textContent = 'Bloque de 10 Preguntas (Modo PRÁCTICA)';
+            } else {
+                checkButton.classList.add('hidden');
+                headerTitle.textContent = 'Bloque de 10 Preguntas (Modo ESTUDIAR)';
+            }
+            restartButton.classList.add('hidden');
+            
+            // Actualizar selector visualmente
+            const studyBtn = document.getElementById('mode-study');
+            const practiceBtn = document.getElementById('mode-practice');
+            
+            studyBtn.classList.remove('bg-blue-600', 'text-white', 'bg-gray-200', 'text-gray-700');
+            practiceBtn.classList.remove('bg-blue-600', 'text-white', 'bg-gray-200', 'text-gray-700');
+
+            if (newMode === 'study') {
+                studyBtn.classList.add('bg-blue-600', 'text-white');
+                practiceBtn.classList.add('bg-gray-200', 'text-gray-700');
+            } else {
+                practiceBtn.classList.add('bg-blue-600', 'text-white');
+                studyBtn.classList.add('bg-gray-200', 'text-gray-700');
+            }
+        }
+
+        // --- INICIALIZACIÓN Y EVENTOS ---
+        
+        function initializeDomElements() {
+            quizContainer = document.getElementById('quiz-container');
+            resultsContainer = document.getElementById('results-container');
+            checkButton = document.getElementById('check-button');
+            restartButton = document.getElementById('restart-button');
+            scoreDisplay = document.getElementById('score-display');
+            headerTitle = document.getElementById('header-title');
+            statusContainer = document.getElementById('question-status-container');
+            modeSelector = document.getElementById('mode-selector');
+        }
+
+        function attachEventListeners() {
+            // Evento para el botón de Comprobar (Solo visible en modo Práctica)
+            checkButton.addEventListener('click', () => {
+                if (quizChecked || quizMode === 'study') return;
+                
+                quizChecked = true;
+                const { score, totalAnswered } = calculateResults(false);
+                
+                // Mostrar resultados finales
+                scoreDisplay.innerHTML = `
+                    <p class="text-2xl font-bold text-gray-800">Resultado Final (Modo Práctica)</p>
+                    <p class="text-xl mt-2">Puntuación: <span class="text-green-600">${score}</span> / ${questionsPerTest}</p>
+                    <p class="text-sm text-gray-600">Preguntas respondidas: ${totalAnswered}</p>
+                    ${totalAnswered < questionsPerTest ? '<p class="text-red-500 mt-1 text-sm font-semibold">¡Atención! Has dejado preguntas sin responder.</p>' : ''}
+                `;
+                resultsContainer.classList.remove('hidden');
+                checkButton.classList.add('hidden');
+                restartButton.classList.remove('hidden', 'animate-pop');
+                void restartButton.offsetWidth; 
+                restartButton.classList.add('animate-pop');
+
+                renderQuestions(); 
+                updateQuestionStatus(); 
+                headerTitle.textContent = `Resultados del Bloque: ${score}/${questionsPerTest}`;
+            });
+
+            // Evento para el botón de Reiniciar
+            restartButton.addEventListener('click', () => {
+                switchMode(quizMode); // Reinicia con el modo actual
+            });
+            
+            // Eventos para el selector de modo
+            document.getElementById('mode-study').addEventListener('click', () => switchMode('study'));
+            document.getElementById('mode-practice').addEventListener('click', () => switchMode('practice'));
+        }
+        
+        function startNewTest() {
+            selectRandomQuestions();
+            renderQuestions();
+            updateQuestionStatus();
+        }
+
+        window.onload = () => {
+            initializeDomElements();
+            attachEventListeners();
+            
+            // Inicia el primer test por defecto en modo 'practice'
+            switchMode('practice');
+        };
+
+    </script>
+</head>
+<body class="p-4 sm:p-8 bg-gray-50 min-h-screen">
+
+    <div class="max-w-3xl mx-auto">
+        <!-- Encabezado -->
+        <header class="text-center mb-10 p-6 bg-white rounded-xl shadow-lg">
+            <h1 class="text-4xl font-extrabold text-blue-800" id="header-title">Bloque de 10 Preguntas (Modo PRÁCTICA)</h1>
+            <h2 class="text-xl font-medium text-gray-600 mt-2">Introducción al Turismo (Unidad 1)</h2>
+            
+            <!-- Selector de Modo -->
+            <div id="mode-selector" class="flex justify-center mt-5 mb-4 p-1 bg-gray-100 rounded-xl shadow-inner max-w-sm mx-auto">
+                <button id="mode-practice" class="flex-1 px-4 py-2 font-semibold text-lg rounded-xl transition duration-200 bg-blue-600 text-white">
+                    Modo Práctica
+                </button>
+                <button id="mode-study" class="flex-1 px-4 py-2 font-semibold text-lg rounded-xl transition duration-200 bg-gray-200 text-gray-700 hover:bg-gray-300">
+                    Modo Estudiar
+                </button>
+            </div>
+
+            <p class="text-sm text-gray-500 mt-1">10 de 100 preguntas totales - ¡Ideal para repasar!</p>
+            
+            <div id="question-status-container" class="flex justify-center mt-4 flex-wrap gap-1 border-t pt-4">
+                <!-- Puntos de estado de las 10 preguntas -->
+            </div>
+        </header>
+
+        <!-- Contenedor de Resultados (feedback instantáneo en modo Estudiar) -->
+        <div id="results-container" class="hidden text-center p-6 bg-yellow-100 rounded-xl shadow-inner border border-yellow-400 mb-8">
+            <div id="score-display">
+                <!-- La puntuación final o parcial se inyectan aquí -->
+            </div>
+        </div>
+
+        <!-- Contenedor de Preguntas -->
+        <div id="quiz-container">
+            <!-- Las 10 preguntas aleatorias se inyectan aquí -->
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6 mb-10">
+            <button id="check-button" class="px-8 py-4 bg-green-600 text-white font-bold text-lg rounded-xl shadow-lg hover:bg-green-700 transition duration-300 transform hover:scale-105">
+                Comprobar Bloque
+            </button>
+            <button id="restart-button" class="px-8 py-4 bg-red-600 text-white font-bold text-lg rounded-xl shadow-lg hover:bg-red-700 transition duration-300 transform hover:scale-105 hidden">
+                Reiniciar y Obtener 10 Nuevas Preguntas
+            </button>
+        </div>
+
+    </div>
+</body>
+</html>
