@@ -105,7 +105,47 @@
             { q: "La <strong>Ley 20/2013 de unidad de mercado</strong> busca solucionar la falta de uniformidad en:", o: ["Los tipos de cambio.", "La legislación autonómica de turismo.", "Los derechos de aduana.", "Los precios de los hoteles."], a: 1, r: "La <strong>ley</strong> se creó para garantizar la 'unidad de mercado', simplificando la compleja legislación en turismo que varía por <strong>Comunidad Autónoma</strong>." },
             { q: "El propósito de la encuesta <strong>Egatur</strong> es conocer el <strong>gasto turístico</strong> de:", o: ["Residentes en el país.", "Visitantes no residentes.", "Empresas de intermediación.", "El sector público."], a: 1, r: "<strong>Egatur</strong> mide el gasto de los <strong>visitantes</strong> que *no residen* en España, es decir, el <strong>turismo receptor</strong>." },
             { q: "El <strong>Turismo Interior</strong> no incluye el:", o: ["Turismo Interno.", "Turismo Receptor.", "Turismo Emisor.", "Turismo Nacional."], a: 2, r: "El <strong>Turismo Interior</strong> incluye <strong>Interno</strong> y <strong>Receptor</strong>; el <strong>Emisor</strong> (salidas al exterior) no forma parte del movimiento dentro del país." }
-            // Final del array de preguntas
+            // Preguntas trampa
+            { q: "¿Cuál de las siguientes afirmaciones sobre el <strong>Turismo Emisor</strong> es INCORRECTA?", o: ["Implica que los residentes viajan fuera del país de referencia.", "Aporta ingresos al país de residencia.", "Supone un flujo de salida turística.", "Se contabiliza en la Balanza de Pagos Turística."], a: 1, r: "El turismo emisor no aporta ingresos al país, sino gastos al exterior." },
+
+            { q: "El <strong>Turismo Interior</strong> incluye:", o: ["El turismo interno y el receptor.", "El emisor y el receptor.", "El interno y el emisor.", "Solo el turismo nacional."], a: 0, r: "El turismo interior combina el <strong>interno</strong> (residentes dentro del país) y el <strong>receptor</strong> (no residentes dentro del país)." },
+            
+            { q: "Un <strong>Excursionista</strong> es aquel visitante que:", o: ["Permanece al menos una noche en el destino.", "No pernocta en el destino visitado.", "Pasa menos de 24 horas, pero duerme allí.", "Viaja por motivos laborales únicamente."], a: 1, r: "El excursionista no pernocta; el turista sí." },
+            
+            { q: "La <strong>Cuenta Satélite de Turismo</strong> (CST) mide:", o: ["El número total de visitantes.", "La contribución económica del turismo al PIB.", "La demanda turística global, sin relación con el PIB.", "El gasto medio de los turistas por día."], a: 1, r: "La CST integra el turismo en el sistema de cuentas nacionales, mostrando su peso económico." },
+            
+            { q: "La <strong>Balanza de Pagos</strong> registra:", o: ["Los flujos de dinero entre residentes y no residentes.", "Solo las operaciones del sector servicios.", "El turismo interno y nacional exclusivamente.", "Las transacciones internas de un país."], a: 0, r: "Es un registro contable de todas las operaciones entre residentes y no residentes." },
+            
+            { q: "El responsable de elaborar la <strong>Balanza de Pagos</strong> en España es:", o: ["El INE.", "El Banco de España.", "La OMT.", "El Ministerio de Turismo."], a: 1, r: "La elabora el <strong>Banco de España</strong> como parte de las estadísticas económicas nacionales." },
+            
+            { q: "¿Qué organismo define el turismo como un fenómeno social, cultural y económico?", o: ["La OMT (Organización Mundial del Turismo).", "El INE.", "El Banco de España.", "La Mesa del Turismo."], a: 0, r: "La definición oficial proviene de la <strong>OMT</strong>." },
+            
+            { q: "La <strong>Directiva UE 2015/2302</strong> trata sobre:", o: ["Los viajes combinados y servicios de viaje vinculados.", "El transporte aéreo de pasajeros.", "La seguridad de la aviación civil.", "Los derechos de autor turísticos."], a: 0, r: "Regula los viajes combinados y servicios vinculados, protegiendo al consumidor europeo." },
+            
+            { q: "El turismo pertenece al sector:", o: ["Primario.", "Secundario.", "Terciario (Servicios).", "Cuaternario."], a: 2, r: "El turismo forma parte del <strong>sector terciario</strong>, centrado en la prestación de servicios." },
+            
+            { q: "Selecciona la opción INCORRECTA sobre el <strong>Impacto Económico</strong> del turismo:", o: ["Incluye efectos directos, indirectos e inducidos.", "Solo tiene en cuenta el gasto de los turistas nacionales.", "Se relaciona con la actividad económica general.", "Puede medirse mediante la CST."], a: 1, r: "El impacto económico no se limita a turistas nacionales; incluye todos los efectos del turismo." },
+            
+            { q: "Una <strong>Balanza de Pagos Turística (BPT)</strong> positiva indica:", o: ["Que los ingresos por turismo son mayores que los gastos en el extranjero.", "Que el país es emisor neto de turismo.", "Que el PIB turístico ha disminuido.", "Que los turistas nacionales gastan menos en su país."], a: 0, r: "Una BPT positiva refleja que el país recibe más dinero del turismo del que gasta fuera." },
+            
+            { q: "Si la <strong>BPT</strong> es negativa, el país:", o: ["Recibe más turistas que los que envía.", "Gasta más en el exterior que lo que ingresa por turismo.", "Tiene un exceso de visitantes extranjeros.", "Aumenta su PIB turístico."], a: 1, r: "Una BPT negativa indica que el país es emisor neto de turismo." },
+            
+            { q: "¿Qué encuesta mide los viajes realizados por los residentes en España?", o: ["Frontur.", "Egatur.", "ETR (Encuesta de Turismo de Residentes).", "CST."], a: 2, r: "La ETR mide el turismo interno y emisor de los residentes españoles." },
+            
+            { q: "La encuesta <strong>Frontur</strong> mide:", o: ["Los visitantes no residentes que llegan a España.", "El gasto de los turistas españoles en el extranjero.", "Los movimientos internos de la población española.", "La evolución del transporte aéreo."], a: 0, r: "Frontur analiza las entradas de turistas y excursionistas no residentes (turismo receptor)." },
+            
+            { q: "La encuesta <strong>Egatur</strong> mide:", o: ["El gasto de los turistas no residentes en España.", "El número total de visitantes residentes.", "El nivel de empleo en el sector turístico.", "El gasto medio de los turistas españoles fuera del país."], a: 0, r: "Egatur mide cuánto gastan los turistas extranjeros en España." },
+            
+            { q: "¿Cuál de las siguientes competencias es exclusiva del Estado según el Art. 149 CE?", o: ["Promoción turística autonómica.", "Puertos y aeropuertos de interés general.", "Turismo rural y local.", "Ferias internacionales de turismo."], a: 1, r: "Los puertos y aeropuertos de interés general son competencia exclusiva del Estado." },
+            
+            { q: "Los <strong>Reglamentos</strong> de la UE son:", o: ["De aplicación directa en todos los Estados miembros.", "Orientativos, no obligatorios.", "Normas sujetas a transposición nacional.", "Resoluciones sin carácter vinculante."], a: 0, r: "Los Reglamentos se aplican directamente sin necesidad de transposición." },
+            
+            { q: "La <strong>Ley 20/2013 de Unidad de Mercado</strong> busca:", o: ["Eliminar barreras autonómicas a la actividad turística.", "Crear la OMT en España.", "Limitar el turismo internacional.", "Fijar los precios hoteleros."], a: 0, r: "Pretende garantizar una única licencia válida en todo el país, eliminando duplicidades autonómicas." },
+            
+            { q: "El control del espacio aéreo es competencia exclusiva de:", o: ["Las Comunidades Autónomas.", "El Estado.", "El Ministerio de Cultura.", "Los Ayuntamientos."], a: 1, r: "El Estado controla el espacio aéreo y los aeropuertos de interés general." },
+            
+            { q: "El <strong>Gasto Turístico</strong> incluye:", o: ["Solo alojamiento y transporte.", "Todos los pagos realizados para y durante el viaje.", "Los gastos del Estado en promoción turística.", "El ahorro previo de los turistas."], a: 1, r: "El gasto turístico incluye todo lo pagado para, durante y después del viaje." }
+
         ];
 
         let selectedQuestions = [];
@@ -503,4 +543,5 @@
     </div>
 </body>
 </html>
+
 
