@@ -441,54 +441,62 @@
         }
 
         function attachEventListeners() {
-            // Evento para el botón de Comprobar (Solo visible en modo Práctica)
-            checkButton.addEventListener('click', () => {
-                if (quizChecked || quizMode === 'study') return;
-                
-                quizChecked = true;
-                const { score, totalAnswered } = calculateResults(false);
-                
-                // Mostrar resultados finales
-                scoreDisplay.innerHTML = `
-                    <p class="text-2xl font-bold text-gray-800">Resultado Final (Modo Práctica)</p>
-                    <p class="text-xl mt-2">Puntuación: <span class="text-green-600">${score}</span> / ${questionsPerTest}</p>
-                    <p class="text-sm text-gray-600">Preguntas respondidas: ${totalAnswered}</p>
-                    ${totalAnswered < questionsPerTest ? '<p class="text-red-500 mt-1 text-sm font-semibold">¡Atención! Has dejado preguntas sin responder.</p>' : ''}
-                `;
-                resultsContainer.classList.remove('hidden');
-                checkButton.classList.add('hidden');
-                restartButton.classList.remove('hidden', 'animate-pop');
-                void restartButton.offsetWidth; 
-                restartButton.classList.add('animate-pop');
+    // Evento para el botón de Comprobar (Solo visible en modo Práctica)
+    checkButton.addEventListener('click', () => {
+        if (quizChecked || quizMode === 'study') return;
 
-                renderQuestions(); 
-                updateQuestionStatus(); 
-                headerTitle.textContent = `Resultados del Bloque: ${score}/${questionsPerTest}`;
-            });
+        quizChecked = true;
+        const { score, totalAnswered } = calculateResults(false);
+        const wrongAnswers = totalAnswered - score;
+        const penalizedScore = Math.max(0, (score - wrongAnswers / 3).toFixed(2));
 
-            // Evento para el botón de Reiniciar
-            restartButton.addEventListener('click', () => {
-                switchMode(quizMode); // Reinicia con el modo actual
-            });
-            
-            // Eventos para el selector de modo
-            document.getElementById('mode-study').addEventListener('click', () => switchMode('study'));
-            document.getElementById('mode-practice').addEventListener('click', () => switchMode('practice'));
-        }
-        
-        function startNewTest() {
-            selectRandomQuestions();
-            renderQuestions();
-            updateQuestionStatus();
-        }
+        // Mostrar resultados finales abajo del todo
+        const finalResultCard = document.createElement('div');
+        finalResultCard.className = 'mt-10 p-6 bg-white rounded-xl shadow-lg text-center border-t-4 border-blue-500 animate-pop';
+        finalResultCard.innerHTML = `
+            <h2 class="text-3xl font-bold text-blue-700 mb-3">¡Test completado!</h2>
+            <p class="text-lg text-gray-800 mb-1">✅ Correctas: <strong>${score}</strong> | ❌ Incorrectas: <strong>${wrongAnswers}</strong></p>
+            <p class="text-xl font-semibold text-green-700 mb-2">Puntuación final: ${penalizedScore} / ${questionsPerTest}</p>
+            ${totalAnswered < questionsPerTest ? '<p class="text-red-500 font-medium mb-2">Has dejado preguntas sin responder.</p>' : ''}
+            <button id="restart-bottom" class="mt-4 px-8 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition duration-300 transform hover:scale-105">
+                Hacer otro test
+            </button>
+        `;
+        quizContainer.appendChild(finalResultCard);
 
-        window.onload = () => {
-            initializeDomElements();
-            attachEventListeners();
-            
-            // Inicia el primer test por defecto en modo 'practice'
-            switchMode('practice');
-        };
+        // Mostrar también el resultado en el recuadro amarillo superior
+        scoreDisplay.innerHTML = `
+            <p class="text-2xl font-bold text-gray-800">Resultado Final (Modo Práctica)</p>
+            <p class="text-xl mt-2">Puntuación: <span class="text-green-600">${penalizedScore}</span> / ${questionsPerTest}</p>
+            <p class="text-sm text-gray-600">(${score} aciertos, ${wrongAnswers} fallos)</p>
+        `;
+        resultsContainer.classList.remove('hidden');
+        checkButton.classList.add('hidden');
+        restartButton.classList.remove('hidden', 'animate-pop');
+        void restartButton.offsetWidth;
+        restartButton.classList.add('animate-pop');
+
+        renderQuestions();
+        updateQuestionStatus();
+        headerTitle.textContent = `Resultados del Bloque: ${penalizedScore}/${questionsPerTest}`;
+
+        // Listener para el botón inferior
+        document.getElementById('restart-bottom').addEventListener('click', () => {
+            switchMode(quizMode);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+
+    // Evento para el botón de Reiniciar
+    restartButton.addEventListener('click', () => {
+        switchMode(quizMode); // Reinicia con el modo actual
+    });
+    
+    // Eventos para el selector de modo
+    document.getElementById('mode-study').addEventListener('click', () => switchMode('study'));
+    document.getElementById('mode-practice').addEventListener('click', () => switchMode('practice'));
+}
+
 
     </script>
 </head>
@@ -542,6 +550,7 @@
     </div>
 </body>
 </html>
+
 
 
 
